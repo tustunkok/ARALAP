@@ -1,6 +1,8 @@
 import numpy as np
 import settings
 import logging
+import initializers
+import json
 
 logger = logging.getLogger('araap')
 
@@ -65,3 +67,18 @@ def create_requests_matrix():
 
     logger.debug("Request matrix:\n%s", requests_matrix)
     return requests_matrix
+
+
+def create_result_matrix(existing_program):
+    existing_prog = json.load(existing_program)
+        
+    result_matrix = np.zeros((len(settings.assistant_programs), len(settings.courses)), dtype=int)
+    assigned_courses = list()
+    for prog in existing_prog:
+        asst_idx = initializers.get_assistant_index(prog['name'])
+        for assigned_lab in prog['assigned_labs']:
+            course_idx = initializers.get_course_index_from_all(assigned_lab['id'])
+            result_matrix[asst_idx, course_idx] = 1
+            assigned_courses.append(course_idx)
+    
+    return (result_matrix, assigned_courses)

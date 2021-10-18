@@ -1,9 +1,12 @@
 import numpy as np
 import logging
+import settings
 
 logger = logging.getLogger('araap')
 
-def greedy(loss_fn, problem, assistant_count, course_count, iter_count=50, result_matrix=None, exclude_courses=list()):
+def greedy(loss_fn, problem, iter_count=50, result_matrix=None, exclude_courses=list()):
+    assistant_count = len(settings.assistant_programs)
+    course_count = len(settings.courses)
     if result_matrix is None:
         logger.info("No default result matrix is provided. Creating empty one.")
         result_matrix = np.zeros((assistant_count, course_count), dtype=int)
@@ -33,7 +36,7 @@ def greedy(loss_fn, problem, assistant_count, course_count, iter_count=50, resul
                     result_test_matrix[assistant1, course], result_test_matrix[assistant2, course] = \
                         result_test_matrix[assistant2, course], result_test_matrix[assistant1, course]
 
-                    temp_loss = loss_fn(result_test_matrix, problem, assistant_count, course_count)
+                    temp_loss = loss_fn(result_test_matrix, problem)
                     if temp_loss < min_loss_value:
                         min_loss_assistant1_idx = assistant1
                         min_loss_assistant2_idx = assistant2

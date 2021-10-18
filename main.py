@@ -8,6 +8,7 @@ import settings
 import click
 import numpy as np
 import logging.config
+import logging
 import yaml
 
 with open('logging.yaml', 'r') as logging_conf_fp:
@@ -15,32 +16,51 @@ with open('logging.yaml', 'r') as logging_conf_fp:
 
 logging.config.dictConfig(logging_config)
 
-@click.command()
-@click.option('--existing-program', '-e', default=None, help='Use a previously generated JSON program and redistribute only unassigned courses.')
-def main(existing_program):
-    settings.assistant_programs = loaders.load_programs(settings.ASSISTANT_PROGRAMS_DIR)
-    settings.courses = loaders.load_courses(settings.COURSES_FILE)
+logger = logging.getLogger('araap')
+
+
+@click.group(invoke_without_command=True)
+@click.option('--version', '-v', is_flag=True, help='Show product version.')
+def cli(version):
+    if version:
+        click.echo('Atılım Research Assistant Lab Assignment Program (ARALAP) v0.2.0 Open Source GPL v3')    
+
+
+@cli.command(name='evaluate')
+@click.argument('courses-file', type=click.File('r'))
+@click.argument('programs-dir', type=click.Path(exists=True))
+@click.argument('file', type=click.File('r'))
+def evaluate_program(courses_file, programs_dir, file):
+    """Evaluates an existing program."""
+    settings.assistant_programs = loaders.load_programs(programs_dir)
+    settings.courses = loaders.load_courses(courses_file)
+    result_matrix, _ = initializers.create_result_matrix(file)
+    aa_problem = constraints.AssistantAssignmentProblem()
+    click.echo(f"Cost: {losses.loss_function(result_matrix, aa_problem)}")
+
+
+@cli.command()
+@click.option('--existing-program', '-e', type=click.File('r'), help='Use a previously generated JSON program and redistribute only unassigned courses.')
+@click.argument('courses-file', type=click.File('r'))
+@click.argument('programs-dir', type=click.Path(exists=True)) # help='The directory containing the assistant program JSON files.'
+@click.argument('output', type=click.File('w'), default='assigned-programs.json', required=False) # help='Output JSON file name with the file extension.'
+def create(existing_program, courses_file, programs_dir, output):
+    """Creates a lab program by using COURSES_FILE, assistant programs inside 
+    PROGRAMS_DIR and outputs the resultant program to OUTPUT file."""
+    
+    settings.assistant_programs = loaders.load_programs(programs_dir)
+    settings.courses = loaders.load_courses(courses_file)
     aa_problem = constraints.AssistantAssignmentProblem()
 
-    if existing_program is not None:
-        with open(existing_program, 'r') as existing_program_fp:
-            existing_prog = json.load(existing_program_fp)
-        
-        result_matrix = np.zeros((len(settings.assistant_programs), len(settings.courses)), dtype=int)
-        assigned_courses = list()
-        for prog in existing_prog:
-            asst_idx = initializers.get_assistant_index(prog['name'])
-            for assigned_lab in prog['assigned_labs']:
-                course_idx = initializers.get_course_index_from_all(assigned_lab['id'])
-                result_matrix[asst_idx, course_idx] = 1
-                assigned_courses.append(course_idx)
+    if existing_program is not None:        
+        result_matrix, assigned_courses = initializers.create_result_matrix(existing_program)
 
         if len(assigned_courses) == len(settings.courses):
-            print("ALL COURSES HAVE ALREADY BEEN ASSIGNED.")
+            logger.warning("All courses have already been assigned.")
         else:
-            result_matrix = optimizers.greedy(losses.loss_function, aa_problem, len(settings.assistant_programs), len(settings.courses), result_matrix=result_matrix, exclude_courses=assigned_courses)
+            result_matrix = optimizers.greedy(losses.loss_function, aa_problem, result_matrix=result_matrix, exclude_courses=assigned_courses)
     else:
-        result_matrix = optimizers.greedy(losses.loss_function, aa_problem, len(settings.assistant_programs), len(settings.courses))
+        result_matrix = optimizers.greedy(losses.loss_function, aa_problem)
 
     assigned_programs = list()
     for i in range(len(result_matrix)):
@@ -56,7 +76,8 @@ def main(existing_program):
         print(60 * "#")
         print()
     
-    with open('assigned-programs.json', 'w') as assigned_progs_fp:
-        json.dump(assigned_programs, assigned_progs_fp, indent=4)
+    
+    json.dump(assigned_programs, output, indent=4)
 
-if __name__ == '__main__': main()
+if __name__ == '__main__':
+    cli()

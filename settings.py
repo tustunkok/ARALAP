@@ -8,5 +8,3 @@ DAY_INDICES = {
     "thu": 3,
     "fri": 4
 }
-ASSISTANT_PROGRAMS_DIR = 'programs'
-COURSES_FILE = 'courses.json'

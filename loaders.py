@@ -19,7 +19,6 @@ def load_programs(programs_dir: str) -> list:
 
 
 def load_courses(courses_file: str) -> list:
-    with open(courses_file, "r") as courses_fp:
-        courses_list = json.load(courses_fp)
+    courses_list = json.load(courses_file)
     logger.info("Loaded %s courses.", len(courses_list))
     return courses_list
