@@ -71,7 +71,7 @@ def create(existing_program, courses_file, programs_dir, output):
         })
 
         print(settings.assistant_programs[i]["name"])
-        print("Ind. Lab Count:", sum([len(a["periods"]) for a in np.array(settings.courses)[np.argwhere(result_matrix[i]).T[0]]]))
+        print("Total Lab Hour:", sum([len(a["periods"]) for a in np.array(settings.courses)[np.argwhere(result_matrix[i]).T[0]]]))
         print(np.array(settings.courses)[np.argwhere(result_matrix[i]).T[0]])
         print(60 * "#")
         print()

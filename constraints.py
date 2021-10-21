@@ -34,6 +34,7 @@ class AssistantAssignmentProblem:
 
 
     def soft_constraint_1(self, X):
+        """Labs should not be assigned to unavailable slots."""
         final_result = 0
         worst_result = 0
         
@@ -50,6 +51,7 @@ class AssistantAssignmentProblem:
 
 
     def soft_constraint_2(self, X):
+        """Labs should be assigned according to the assistant requests."""
         final_result = 0
         worst_result = 0
 
@@ -66,10 +68,12 @@ class AssistantAssignmentProblem:
 
 
     def soft_constraint_3(self, X):
+        """All labs should be assigned to assistants."""
         return np.sum(np.sum(X, axis=0) == 0) / self.course_count
 
 
     def soft_constraint_4(self, X):
+        """All assistant loads should be equal."""
         assistant_loads = list()
         for assistant_idx in range(self.assistant_count):
             assistant_total = 0
@@ -81,3 +85,15 @@ class AssistantAssignmentProblem:
         assistant_loads = np.array(assistant_loads)
         load_mean = np.mean(assistant_loads)
         return np.var(assistant_loads) / load_mean
+    
+
+    def soft_constraint_5(self, X):
+        """Same type of labs should be assigned."""
+        all_stds = list()
+        for asst_id, _ in enumerate(settings.assistant_programs):
+            assigned_courses = np.array(settings.courses)[X[asst_id].astype(bool)]
+            raw_assigned_courses = list()
+            for assigned_course in assigned_courses:
+                raw_assigned_courses.append(initializers.get_course_index(assigned_course["id"].split("-")[0]))
+            all_stds.append(np.var(raw_assigned_courses) / np.mean(raw_assigned_courses))
+        return np.sum(all_stds) / len(settings.assistant_programs)
