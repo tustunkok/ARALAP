@@ -1,4 +1,6 @@
+import itertools
 import numpy as np
+from numpy.lib.function_base import diff
 import initializers
 import settings
 import logging
@@ -21,11 +23,12 @@ class AssistantAssignmentProblem:
         costs = {
             "Hard Constraint 1": 100 * self.hard_constraint_1(X_to_be_used),
             "Hard Constraint 2": 100 * self.hard_constraint_2(X_to_be_used),
-            "Soft Constraint 1": 45.0 * self.soft_constraint_1(X_to_be_used),
+            "Soft Constraint 1": 40.0 * self.soft_constraint_1(X_to_be_used),
             "Soft Constraint 2": 15.0 * self.soft_constraint_2(X_to_be_used),
             "Soft Constraint 3": 10.0 * self.soft_constraint_3(X_to_be_used),
             "Soft Constraint 4": 20.0 * self.soft_constraint_4(X_to_be_used),
-            "Soft Constraint 5": 10.0 * self.soft_constraint_5(X_to_be_used)
+            "Soft Constraint 5": 10.0 * self.soft_constraint_5(X_to_be_used),
+            "Soft Constraint 6": 5.0 * self.soft_constraint_6(X_to_be_used)
         }
 
         if verbose:
@@ -35,7 +38,7 @@ class AssistantAssignmentProblem:
             return result
         
         
-        return np.sum(costs)
+        return np.sum([v for _, v in costs.items()])
 
     def hard_constraint_1(self, X):
         total = 0
@@ -118,3 +121,24 @@ class AssistantAssignmentProblem:
                 raw_assigned_courses.append(initializers.get_course_index(assigned_course["id"].split("-")[0]))
             all_stds.append(np.var(raw_assigned_courses) / np.mean(raw_assigned_courses))
         return np.sum(all_stds) / len(settings.assistant_programs)
+    
+
+    def soft_constraint_6(self, X):
+        """Consecutive laboratory hours should be assigned."""
+        all_assistants_non_periodic_hours = 0
+        for asst_id, _ in enumerate(settings.assistant_programs):
+            assigned_courses = np.array(settings.courses)[X[asst_id].astype(bool)]
+            different_days = set([course['day'] for course in assigned_courses])
+            total_non_periodic_hours = 0
+            for different_day in different_days:
+                periods_in_same_day = [course['periods'] for course in assigned_courses if course['day'] == different_day]
+                periods = list(itertools.chain.from_iterable(periods_in_same_day))
+                period_diffs = np.diff(periods)
+                cost = np.sum(period_diffs[period_diffs > 1]) / 8
+                total_non_periodic_hours += cost
+            if len(different_days) == 0:
+                continue
+            all_assistants_non_periodic_hours += total_non_periodic_hours / len(different_days)
+            print(all_assistants_non_periodic_hours)
+        return all_assistants_non_periodic_hours / len(settings.assistant_programs)
+
