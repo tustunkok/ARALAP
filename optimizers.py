@@ -4,7 +4,7 @@ import settings
 
 logger = logging.getLogger('araap')
 
-def greedy(loss_fn, problem, iter_count=50, result_matrix=None, exclude_courses=list()):
+def greedy(problem, iter_count=50, result_matrix=None, exclude_courses=list()):
     assistant_count = len(settings.assistant_programs)
     course_count = len(settings.courses)
     if result_matrix is None:
@@ -36,7 +36,7 @@ def greedy(loss_fn, problem, iter_count=50, result_matrix=None, exclude_courses=
                     result_test_matrix[assistant1, course], result_test_matrix[assistant2, course] = \
                         result_test_matrix[assistant2, course], result_test_matrix[assistant1, course]
 
-                    temp_loss = loss_fn(result_test_matrix, problem)
+                    temp_loss = problem.evaluate(result_test_matrix)
                     if temp_loss < min_loss_value:
                         min_loss_assistant1_idx = assistant1
                         min_loss_assistant2_idx = assistant2

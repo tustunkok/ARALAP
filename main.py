@@ -2,7 +2,6 @@ import constraints
 import loaders
 import initializers
 import optimizers
-import losses
 import json
 import settings
 import click
@@ -36,7 +35,7 @@ def evaluate_program(courses_file, programs_dir, file):
     settings.courses = loaders.load_courses(courses_file)
     result_matrix, _ = initializers.create_result_matrix(file)
     aa_problem = constraints.AssistantAssignmentProblem()
-    click.echo(f"Cost: {losses.loss_function(result_matrix, aa_problem)}")
+    click.echo(aa_problem.evaluate(result_matrix, verbose=True))
 
 
 @cli.command()
@@ -58,9 +57,9 @@ def create(existing_program, courses_file, programs_dir, output):
         if len(assigned_courses) == len(settings.courses):
             logger.warning("All courses have already been assigned.")
         else:
-            result_matrix = optimizers.greedy(losses.loss_function, aa_problem, result_matrix=result_matrix, exclude_courses=assigned_courses)
+            result_matrix = optimizers.greedy(aa_problem, result_matrix=result_matrix, exclude_courses=assigned_courses)
     else:
-        result_matrix = optimizers.greedy(losses.loss_function, aa_problem)
+        result_matrix = optimizers.greedy(aa_problem)
 
     assigned_programs = list()
     for i in range(len(result_matrix)):
@@ -72,6 +71,14 @@ def create(existing_program, courses_file, programs_dir, output):
 
         print(settings.assistant_programs[i]["name"])
         print("Total Lab Hour:", sum([len(a["periods"]) for a in np.array(settings.courses)[np.argwhere(result_matrix[i]).T[0]]]))
+
+        resultant_matrix = aa_problem.unavailability_matrix[i].copy()
+
+        for course_schedule in aa_problem.courses_schedule_matrix[result_matrix[i].astype(bool)]:
+            resultant_matrix += course_schedule
+        
+        print(f"Occupied Unavailable Slot Hour: {np.sum(resultant_matrix > 1)}")
+
         print(np.array(settings.courses)[np.argwhere(result_matrix[i]).T[0]])
         print(60 * "#")
         print()

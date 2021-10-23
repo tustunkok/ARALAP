@@ -15,6 +15,27 @@ class AssistantAssignmentProblem:
         self.courses_schedule_matrix = initializers.create_course_schedule_matrix()
         self.requests_matrix = initializers.create_requests_matrix()
         logger.info('AssistantAssignmentProblem initialization finished.')
+    
+    def evaluate(self, X, verbose=False):
+        X_to_be_used = X.reshape(self.assistant_count, self.course_count)
+        costs = {
+            "Hard Constraint 1": 100 * self.hard_constraint_1(X_to_be_used),
+            "Hard Constraint 2": 100 * self.hard_constraint_2(X_to_be_used),
+            "Soft Constraint 1": 45.0 * self.soft_constraint_1(X_to_be_used),
+            "Soft Constraint 2": 15.0 * self.soft_constraint_2(X_to_be_used),
+            "Soft Constraint 3": 10.0 * self.soft_constraint_3(X_to_be_used),
+            "Soft Constraint 4": 20.0 * self.soft_constraint_4(X_to_be_used),
+            "Soft Constraint 5": 10.0 * self.soft_constraint_5(X_to_be_used)
+        }
+
+        if verbose:
+            result = str()
+            for k, v in costs.items():
+                result += f"{k}: {v}\n"
+            return result
+        
+        
+        return np.sum(costs)
 
     def hard_constraint_1(self, X):
         total = 0
