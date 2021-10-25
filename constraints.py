@@ -139,6 +139,5 @@ class AssistantAssignmentProblem:
             if len(different_days) == 0:
                 continue
             all_assistants_non_periodic_hours += total_non_periodic_hours / len(different_days)
-            print(all_assistants_non_periodic_hours)
         return all_assistants_non_periodic_hours / len(settings.assistant_programs)
 
