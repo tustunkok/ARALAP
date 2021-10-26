@@ -10,9 +10,9 @@ logger = logging.getLogger('araap')
 class AssistantAssignmentProblem:
     def __init__(self):
         logger.info('AssistantAssignmentProblem initialization started.')
-        self.assistant_count = len(settings.assistant_programs)
-        self.course_count = len(settings.courses)
-        self.distinct_course_count = len(set([course["id"].split("-")[0] for course in settings.courses]))
+        self.assistant_count = len(settings.ASSISTANT_PROGRAMS)
+        self.course_count = len(settings.COURSES)
+        self.distinct_course_count = len(set([course["id"].split("-")[0] for course in settings.COURSES]))
         self.unavailability_matrix = initializers.create_unavailability_matrix()
         self.courses_schedule_matrix = initializers.create_course_schedule_matrix()
         self.requests_matrix = initializers.create_requests_matrix()
@@ -42,8 +42,8 @@ class AssistantAssignmentProblem:
 
     def hard_constraint_1(self, X):
         total = 0
-        for asst_id, _ in enumerate(settings.assistant_programs):
-            assigned_courses = np.array(settings.courses)[X[asst_id].astype(bool)]
+        for asst_id, _ in enumerate(settings.ASSISTANT_PROGRAMS):
+            assigned_courses = np.array(settings.COURSES)[X[asst_id].astype(bool)]
 
             for i in range(len(assigned_courses) - 1):
                 for j in range(i + 1, len(assigned_courses)):
@@ -62,7 +62,7 @@ class AssistantAssignmentProblem:
         final_result = 0
         worst_result = 0
         
-        for asst_id, _ in enumerate(settings.assistant_programs):
+        for asst_id, _ in enumerate(settings.ASSISTANT_PROGRAMS):
             resultant_matrix = self.unavailability_matrix[asst_id].copy()
 
             for course_schedule in self.courses_schedule_matrix[X[asst_id].astype(bool)]:
@@ -79,9 +79,9 @@ class AssistantAssignmentProblem:
         final_result = 0
         worst_result = 0
 
-        for asst_id, _ in enumerate(settings.assistant_programs):
+        for asst_id, _ in enumerate(settings.ASSISTANT_PROGRAMS):
             course_sum = 0
-            assigned_courses = np.array(settings.courses)[X[asst_id].astype(bool)]
+            assigned_courses = np.array(settings.COURSES)[X[asst_id].astype(bool)]
             for assigned_course in assigned_courses:
                 course_sum += self.requests_matrix[asst_id, initializers.get_course_index(assigned_course["id"].split("-")[0])]
 
@@ -114,20 +114,20 @@ class AssistantAssignmentProblem:
     def soft_constraint_5(self, X):
         """Same type of labs should be assigned."""
         all_stds = list()
-        for asst_id, _ in enumerate(settings.assistant_programs):
-            assigned_courses = np.array(settings.courses)[X[asst_id].astype(bool)]
+        for asst_id, _ in enumerate(settings.ASSISTANT_PROGRAMS):
+            assigned_courses = np.array(settings.COURSES)[X[asst_id].astype(bool)]
             raw_assigned_courses = list()
             for assigned_course in assigned_courses:
                 raw_assigned_courses.append(initializers.get_course_index(assigned_course["id"].split("-")[0]))
             all_stds.append(np.var(raw_assigned_courses) / np.mean(raw_assigned_courses))
-        return np.sum(all_stds) / len(settings.assistant_programs)
+        return np.sum(all_stds) / len(settings.ASSISTANT_PROGRAMS)
     
 
     def soft_constraint_6(self, X):
         """Consecutive laboratory hours should be assigned."""
         all_assistants_non_periodic_hours = 0
-        for asst_id, _ in enumerate(settings.assistant_programs):
-            assigned_courses = np.array(settings.courses)[X[asst_id].astype(bool)]
+        for asst_id, _ in enumerate(settings.ASSISTANT_PROGRAMS):
+            assigned_courses = np.array(settings.COURSES)[X[asst_id].astype(bool)]
             different_days = set([course['day'] for course in assigned_courses])
             total_non_periodic_hours = 0
             for different_day in different_days:
@@ -139,5 +139,5 @@ class AssistantAssignmentProblem:
             if len(different_days) == 0:
                 continue
             all_assistants_non_periodic_hours += total_non_periodic_hours / len(different_days)
-        return all_assistants_non_periodic_hours / len(settings.assistant_programs)
+        return all_assistants_non_periodic_hours / len(settings.ASSISTANT_PROGRAMS)
 

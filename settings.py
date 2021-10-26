@@ -8,3 +8,4 @@ DAY_INDICES = {
     "thu": 3,
     "fri": 4
 }
+DEBUG = False

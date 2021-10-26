@@ -5,8 +5,8 @@ import settings
 logger = logging.getLogger('araap')
 
 def greedy(problem, iter_count=50, result_matrix=None, exclude_courses=list()):
-    assistant_count = len(settings.assistant_programs)
-    course_count = len(settings.courses)
+    assistant_count = len(settings.ASSISTANT_PROGRAMS)
+    course_count = len(settings.COURSES)
     if result_matrix is None:
         logger.info("No default result matrix is provided. Creating empty one.")
         result_matrix = np.zeros((assistant_count, course_count), dtype=int)

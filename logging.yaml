@@ -10,7 +10,7 @@ handlers:
     stream: ext://sys.stdout
 loggers:
   araap:
-    level: DEBUG
+    level: INFO
     handlers: [console]
     propagate: no
 root:

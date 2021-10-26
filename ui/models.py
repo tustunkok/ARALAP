@@ -11,9 +11,6 @@ class ResearchAssistantModel(QAbstractListModel):
     
     def data(self, index, role):
         if role == Qt.DisplayRole:
-            return self.assistants[index.row()]['name']
-        
-        if role == Qt.DisplayPropertyRole:
             return self.assistants[index.row()]
 
     def rowCount(self, index):
