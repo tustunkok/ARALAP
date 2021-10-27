@@ -19,7 +19,7 @@ logger = logging.getLogger('araap')
 
 @click.group()
 @click.option('--debug/--no-debug', default=False, help='Set debug mode.')
-@click.version_option('0.6.0', prog_name='ARALAP')
+@click.version_option('0.8.0', prog_name='ARALAP')
 def cli(debug):
     settings.DEBUG = debug
 
