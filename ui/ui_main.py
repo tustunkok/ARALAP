@@ -9,10 +9,10 @@ from models import ResearchAssistantModel, Days, ResearchAssistantProgramModel
 PROGRAMS_DIR = None
 COURSES_FILE = None
 MAIN_WINDOW = None
+EXISTING_PROGRAM = None
 
 def load_assistant_data():
     assistant_list_prog = subprocess.run(['python', '../cli.py', 'interop', '-p', f'{PROGRAMS_DIR}', '-c', f'{COURSES_FILE}', '-n'], capture_output=True, text=True)
-    print(assistant_list_prog.stderr)
     ra_model = ResearchAssistantModel(assistants=assistant_list_prog.stdout.split('\n'))
     MAIN_WINDOW.assistantLV.setModel(ra_model)
 
@@ -20,7 +20,7 @@ def load_assistant_data():
 def display_selected_program(modelIndex: QtCore.QModelIndex):    
     assistant_name = modelIndex.data(role=QtCore.Qt.DisplayRole)
 
-    assistant_prog_proc = subprocess.run(['python', '../cli.py', 'interop', '-p', f'{PROGRAMS_DIR}', '-c', f'{COURSES_FILE}', '-f', '../assigned-programs.json', f'{assistant_name}'], capture_output=True, text=True)
+    assistant_prog_proc = subprocess.run(['python', '../cli.py', 'interop', '-p', f'{PROGRAMS_DIR}', '-c', f'{COURSES_FILE}', '-f', 'assigned-programs.json', f'{assistant_name}'], capture_output=True, text=True)
     
     program_obj = json.loads(assistant_prog_proc.stdout)
     
@@ -55,6 +55,22 @@ def courses_dir_select():
     COURSES_FILE = dlg.selectedFiles()[0]
 
 
+def create_new_program():
+    if EXISTING_PROGRAM is None:
+        subprocess.run(['python', '../cli.py', 'schedule', '-p', f'{PROGRAMS_DIR}', '-c', f'{COURSES_FILE}'])
+    else:
+        subprocess.run(['python', '../cli.py', 'schedule', '-p', f'{PROGRAMS_DIR}', '-c', f'{COURSES_FILE}', '-e', f'{EXISTING_PROGRAM}'])
+
+
+def choose_existing_program():
+    global EXISTING_PROGRAM
+    dlg = QtWidgets.QFileDialog()
+    dlg.setFileMode(QtWidgets.QFileDialog.AnyFile)
+    dlg.setNameFilter("Json files (*.json)")
+    dlg.exec()
+    EXISTING_PROGRAM = dlg.selectedFiles()[0]
+
+
 if __name__ == '__main__':
     print("PySide6", PySide6.__version__)
     print("Qt", QtCore.__version__)
@@ -69,6 +85,8 @@ if __name__ == '__main__':
     MAIN_WINDOW.assistantLV.clicked.connect(display_selected_program)
     MAIN_WINDOW.programsDirBtn.clicked.connect(programs_dir_select)
     MAIN_WINDOW.coursesDirBtn.clicked.connect(courses_dir_select)
+    MAIN_WINDOW.createNewProgramBtn.clicked.connect(create_new_program)
+    MAIN_WINDOW.chooseExistingProgBtn.clicked.connect(choose_existing_program)
     MAIN_WINDOW.show()
 
     sys.exit(app.exec())

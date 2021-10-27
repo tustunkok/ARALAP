@@ -1,3 +1,4 @@
+import os
 import json
 import click
 import settings
@@ -10,7 +11,12 @@ import logging
 import logging.config
 import optimizers
 
-with open('../logging.yaml', 'r') as logging_conf_fp:
+if 'logging.yaml' in os.listdir():
+    logging_conf = 'logging.yaml'
+else:
+    logging_conf = '../logging.yaml'
+
+with open(logging_conf, 'r') as logging_conf_fp:
     logging_config = yaml.load(logging_conf_fp, Loader=yaml.FullLoader)
 
 logging.config.dictConfig(logging_config)
@@ -19,7 +25,7 @@ logger = logging.getLogger('araap')
 
 @click.group()
 @click.option('--debug/--no-debug', default=False, help='Set debug mode.')
-@click.version_option('0.8.0', prog_name='ARALAP')
+@click.version_option('0.8.2', prog_name='ARALAP')
 def cli(debug):
     settings.DEBUG = debug
 
