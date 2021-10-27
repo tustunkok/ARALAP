@@ -6,16 +6,21 @@ from PySide6 import QtCore, QtWidgets
 from PySide6.QtUiTools import QUiLoader
 from models import ResearchAssistantModel, Days, ResearchAssistantProgramModel
 
-def load_assistant_data(window):
-    assistant_list_prog = subprocess.run(['python', '../cli.py', 'interop', '-p', '../programs/', '-c', '../jsons/courses.json', '-n'], capture_output=True, text=True)
+PROGRAMS_DIR = None
+COURSES_FILE = None
+MAIN_WINDOW = None
+
+def load_assistant_data():
+    assistant_list_prog = subprocess.run(['python', '../cli.py', 'interop', '-p', f'{PROGRAMS_DIR}', '-c', f'{COURSES_FILE}', '-n'], capture_output=True, text=True)
     print(assistant_list_prog.stderr)
     ra_model = ResearchAssistantModel(assistants=assistant_list_prog.stdout.split('\n'))
-    window.assistantLV.setModel(ra_model)
+    MAIN_WINDOW.assistantLV.setModel(ra_model)
 
-def display_selected_program(modelIndex: QtCore.QModelIndex, window):    
+
+def display_selected_program(modelIndex: QtCore.QModelIndex):    
     assistant_name = modelIndex.data(role=QtCore.Qt.DisplayRole)
 
-    assistant_prog_proc = subprocess.run(['python', '../cli.py', 'interop', '-p', '../programs/', '-c', '../jsons/courses.json', '-f', '../assigned-programs.json', f'{assistant_name}'], capture_output=True, text=True)
+    assistant_prog_proc = subprocess.run(['python', '../cli.py', 'interop', '-p', f'{PROGRAMS_DIR}', '-c', f'{COURSES_FILE}', '-f', '../assigned-programs.json', f'{assistant_name}'], capture_output=True, text=True)
     
     program_obj = json.loads(assistant_prog_proc.stdout)
     
@@ -28,7 +33,27 @@ def display_selected_program(modelIndex: QtCore.QModelIndex, window):
             program[period][Days[assigned_lab['day']].value] = assigned_lab['id']
 
     program_model = ResearchAssistantProgramModel(program=program)
-    window.programTV.setModel(program_model)
+    MAIN_WINDOW.programTV.setModel(program_model)
+
+
+def programs_dir_select():
+    global PROGRAMS_DIR
+    dlg = QtWidgets.QFileDialog()
+    dlg.setFileMode(QtWidgets.QFileDialog.Directory)
+    dlg.setOption(QtWidgets.QFileDialog.ShowDirsOnly, True)
+    dlg.exec()
+    PROGRAMS_DIR = dlg.selectedFiles()[0]
+    load_assistant_data()
+
+
+def courses_dir_select():
+    global COURSES_FILE
+    dlg = QtWidgets.QFileDialog()
+    dlg.setFileMode(QtWidgets.QFileDialog.AnyFile)
+    dlg.setNameFilter("Json files (*.json)")
+    dlg.exec()
+    COURSES_FILE = dlg.selectedFiles()[0]
+
 
 if __name__ == '__main__':
     print("PySide6", PySide6.__version__)
@@ -40,11 +65,10 @@ if __name__ == '__main__':
     ui_file.open(QtCore.QFile.ReadOnly)
     loader = QUiLoader()
 
-    window = loader.load(ui_file)
-    window.assistantLV.clicked.connect(lambda x: display_selected_program(x, window))
-    window.show()
-
-    load_assistant_data(window)
-    # load_program_data()
+    MAIN_WINDOW = loader.load(ui_file)
+    MAIN_WINDOW.assistantLV.clicked.connect(display_selected_program)
+    MAIN_WINDOW.programsDirBtn.clicked.connect(programs_dir_select)
+    MAIN_WINDOW.coursesDirBtn.clicked.connect(courses_dir_select)
+    MAIN_WINDOW.show()
 
     sys.exit(app.exec())
