@@ -71,14 +71,17 @@ def create_requests_matrix():
 
 def create_result_matrix(existing_program):
     existing_prog = json.load(existing_program)
+    excluded_assistants = []
         
     result_matrix = np.zeros((len(settings.ASSISTANT_PROGRAMS), len(settings.COURSES)), dtype=int)
     assigned_courses = list()
     for prog in existing_prog:
         asst_idx = initializers.get_assistant_index(prog['name'])
+        if prog['exclude'] == True:
+            excluded_assistants.append(asst_idx)
         for assigned_lab in prog['assigned_labs']:
             course_idx = initializers.get_course_index_from_all(assigned_lab['id'])
             result_matrix[asst_idx, course_idx] = 1
             assigned_courses.append(course_idx)
     
-    return (result_matrix, assigned_courses)
+    return (result_matrix, assigned_courses, excluded_assistants)

@@ -23,11 +23,11 @@ class AssistantAssignmentProblem:
         costs = {
             "Hard Constraint 1": 100 * self.hard_constraint_1(X_to_be_used),
             "Hard Constraint 2": 100 * self.hard_constraint_2(X_to_be_used),
-            "Soft Constraint 1": 40.0 * self.soft_constraint_1(X_to_be_used),
-            "Soft Constraint 2": 15.0 * self.soft_constraint_2(X_to_be_used),
+            "Soft Constraint 1": 55.0 * self.soft_constraint_1(X_to_be_used),
+            "Soft Constraint 2": 5.0 * self.soft_constraint_2(X_to_be_used),
             "Soft Constraint 3": 10.0 * self.soft_constraint_3(X_to_be_used),
             "Soft Constraint 4": 20.0 * self.soft_constraint_4(X_to_be_used),
-            "Soft Constraint 5": 10.0 * self.soft_constraint_5(X_to_be_used),
+            "Soft Constraint 5": 5.0 * self.soft_constraint_5(X_to_be_used),
             "Soft Constraint 6": 5.0 * self.soft_constraint_6(X_to_be_used)
         }
 

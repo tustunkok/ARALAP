@@ -4,7 +4,7 @@ import json
 import PySide6
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtUiTools import QUiLoader
-from models import ResearchAssistantModel, Days, ResearchAssistantProgramModel
+from .models import ResearchAssistantModel, Days, ResearchAssistantProgramModel
 
 PROGRAMS_DIR = None
 COURSES_FILE = None
@@ -12,15 +12,15 @@ MAIN_WINDOW = None
 EXISTING_PROGRAM = None
 
 def load_assistant_data():
-    assistant_list_prog = subprocess.run(['python', '../cli.py', 'interop', '-p', f'{PROGRAMS_DIR}', '-c', f'{COURSES_FILE}', '-n'], capture_output=True, text=True)
-    ra_model = ResearchAssistantModel(assistants=assistant_list_prog.stdout.split('\n'))
+    assistant_list_prog = subprocess.run(['python', 'cli.py', 'interop', '-p', f'{PROGRAMS_DIR}', '-c', f'{COURSES_FILE}', '-n'], capture_output=True, text=True)
+    ra_model = ResearchAssistantModel(assistants=assistant_list_prog.stdout.split('\n')[:-1])
     MAIN_WINDOW.assistantLV.setModel(ra_model)
 
 
 def display_selected_program(modelIndex: QtCore.QModelIndex):    
     assistant_name = modelIndex.data(role=QtCore.Qt.DisplayRole)
 
-    assistant_prog_proc = subprocess.run(['python', '../cli.py', 'interop', '-p', f'{PROGRAMS_DIR}', '-c', f'{COURSES_FILE}', '-f', 'assigned-programs.json', f'{assistant_name}'], capture_output=True, text=True)
+    assistant_prog_proc = subprocess.run(['python', 'cli.py', 'interop', '-p', f'{PROGRAMS_DIR}', '-c', f'{COURSES_FILE}', '-f', 'assigned-programs.json', f'{assistant_name}'], capture_output=True, text=True)
     
     program_obj = json.loads(assistant_prog_proc.stdout)
     
@@ -57,9 +57,9 @@ def courses_dir_select():
 
 def create_new_program():
     if EXISTING_PROGRAM is None:
-        subprocess.run(['python', '../cli.py', 'schedule', '-p', f'{PROGRAMS_DIR}', '-c', f'{COURSES_FILE}'])
+        subprocess.run(['python', 'cli.py', 'schedule', '-p', f'{PROGRAMS_DIR}', '-c', f'{COURSES_FILE}'])
     else:
-        subprocess.run(['python', '../cli.py', 'schedule', '-p', f'{PROGRAMS_DIR}', '-c', f'{COURSES_FILE}', '-e', f'{EXISTING_PROGRAM}'])
+        subprocess.run(['python', 'cli.py', 'schedule', '-p', f'{PROGRAMS_DIR}', '-c', f'{COURSES_FILE}', '-e', f'{EXISTING_PROGRAM}'])
 
 
 def choose_existing_program():
@@ -71,13 +71,14 @@ def choose_existing_program():
     EXISTING_PROGRAM = dlg.selectedFiles()[0]
 
 
-if __name__ == '__main__':
+def main():
+    global MAIN_WINDOW
     print("PySide6", PySide6.__version__)
     print("Qt", QtCore.__version__)
 
     app = QtWidgets.QApplication(sys.argv)
 
-    ui_file = QtCore.QFile("uis/mainwindow.ui")
+    ui_file = QtCore.QFile("./ui/uis/mainwindow.ui")
     ui_file.open(QtCore.QFile.ReadOnly)
     loader = QUiLoader()
 

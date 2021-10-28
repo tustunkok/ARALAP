@@ -10,13 +10,9 @@ import yaml
 import logging
 import logging.config
 import optimizers
+from ui import ui_main
 
-if 'logging.yaml' in os.listdir():
-    logging_conf = 'logging.yaml'
-else:
-    logging_conf = '../logging.yaml'
-
-with open(logging_conf, 'r') as logging_conf_fp:
+with open('logging.yaml', 'r') as logging_conf_fp:
     logging_config = yaml.load(logging_conf_fp, Loader=yaml.FullLoader)
 
 logging.config.dictConfig(logging_config)
@@ -45,7 +41,7 @@ def interop(programs_dir, courses, names, program_of):
             click.echo(asst['name'])
     
     if program_of:
-        result_matrix, _ = initializers.create_result_matrix(program_of[0])
+        result_matrix, *_ = initializers.create_result_matrix(program_of[0])
         asst_idx = initializers.get_assistant_index(program_of[1])
         click.echo(json.dumps({
             'name': settings.ASSISTANT_PROGRAMS[asst_idx]["name"],
@@ -68,12 +64,13 @@ def schedule(programs_dir, courses, use_existing, output, verbose):
     aa_problem = constraints.AssistantAssignmentProblem()
 
     if use_existing:
-        result_matrix, assigned_courses = initializers.create_result_matrix(use_existing)
+        result_matrix, assigned_courses, exclude_assistants = initializers.create_result_matrix(use_existing)
+        print(exclude_assistants)
 
         if len(assigned_courses) == len(settings.COURSES):
             logger.warning("All courses have already been assigned.")
         else:
-            result_matrix = optimizers.greedy(aa_problem, result_matrix=result_matrix, exclude_courses=assigned_courses)
+            result_matrix = optimizers.greedy(aa_problem, result_matrix=result_matrix, exclude_courses=assigned_courses, exclude_assistants=exclude_assistants)
     else:
         result_matrix = optimizers.greedy(aa_problem)
     
@@ -81,6 +78,12 @@ def schedule(programs_dir, courses, use_existing, output, verbose):
 
     if verbose:
         print_program(aa_problem, result_matrix)
+
+
+@cli.command()
+def gui():
+    """Open the GUI."""
+    ui_main.main()
 
 
 def print_program(aa_problem, result_matrix):
@@ -106,6 +109,7 @@ def save_program(output, result_matrix):
         assigned_programs.append({
             'name': settings.ASSISTANT_PROGRAMS[i]["name"],
             'load': sum([len(a["periods"]) for a in np.array(settings.COURSES)[np.argwhere(result_matrix[i]).T[0]]]),
+            'exclude': False,
             'assigned_labs': np.array(settings.COURSES)[np.argwhere(result_matrix[i]).T[0]].tolist()
         })
     json.dump(assigned_programs, output, indent=4)
