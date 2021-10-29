@@ -5,12 +5,12 @@ formatters:
 handlers:
   console:
     class: logging.StreamHandler
-    level: ERROR
+    level: DEBUG
     formatter: simple
     stream: ext://sys.stdout
 loggers:
   araap:
-    level: INFO
+    level: ERROR
     handlers: [console]
     propagate: no
 root:

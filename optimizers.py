@@ -4,27 +4,9 @@ import settings
 
 logger = logging.getLogger('araap')
 
-def greedy(problem, iter_count=50, result_matrix=None, exclude_courses=[], exclude_assistants=[]):
-    assistant_count = len(settings.ASSISTANT_PROGRAMS)
-    course_count = len(settings.COURSES)
-    if result_matrix is None:
-        logger.info("No default result matrix is provided. Creating empty one.")
-        result_matrix = np.zeros((assistant_count, course_count), dtype=int)
-        result_test_matrix = np.zeros((assistant_count, course_count), dtype=int)
-    else:
-        logger.info("Default result matrix is provided. Using it.")
-        logger.info("Excluding courses %s", exclude_courses)
-        result_test_matrix = np.copy(result_matrix)
-    
-    for course in range(course_count):
-        asst_idx = int(np.random.rand(1)[0] * assistant_count)
-        while asst_idx in exclude_assistants:
-            asst_idx = int(np.random.rand(1)[0] * assistant_count)
-        if course in exclude_courses:
-            continue
-        result_matrix[asst_idx, course] = 1
-        result_test_matrix[asst_idx, course] = 1
-    
+
+def swap(problem, result_matrix, iter_count, assistant_count, course_count, exclude_courses, exclude_assistants):
+    result_test_matrix = np.copy(result_matrix)
     progress = True
     previous_cost = np.inf
     iter_idx = 0
@@ -63,3 +45,49 @@ def greedy(problem, iter_count=50, result_matrix=None, exclude_courses=[], exclu
             progress = False
         previous_cost = min_loss_value
     return result_matrix
+
+
+def greedy_wo_randomization(problem, iter_count=50, result_matrix=None, exclude_courses=[], exclude_assistants=[]):
+    assistant_count = len(settings.ASSISTANT_PROGRAMS)
+    course_count = len(settings.COURSES)
+    result_matrix = np.zeros((assistant_count, course_count), dtype=int)
+    result_test_matrix = np.zeros((assistant_count, course_count), dtype=int)
+
+    for course in range(course_count):
+        initial_loss = np.inf
+        winning_asst = -1
+        for asst_idx in range(assistant_count):
+            result_test_matrix[asst_idx, course] = 1
+            loss = problem.evaluate(result_test_matrix, verbose=False)
+            if loss < initial_loss:
+                result_test_matrix = np.copy(result_matrix)
+                initial_loss = loss
+                winning_asst = asst_idx
+        
+        result_matrix[winning_asst, course] = 1
+    
+    return swap(problem, result_matrix, iter_count, assistant_count, course_count, exclude_courses, exclude_assistants)
+
+
+
+def greedy(problem, iter_count=50, result_matrix=None, exclude_courses=[], exclude_assistants=[]):
+    assistant_count = len(settings.ASSISTANT_PROGRAMS)
+    course_count = len(settings.COURSES)
+    if result_matrix is None:
+        logger.info("No default result matrix is provided. Creating empty one.")
+        result_matrix = np.zeros((assistant_count, course_count), dtype=int)
+        # result_test_matrix = np.zeros((assistant_count, course_count), dtype=int)
+    else:
+        logger.info("Default result matrix is provided. Using it.")
+        logger.info("Excluding courses %s", exclude_courses)
+        # result_test_matrix = np.copy(result_matrix)
+    
+    for course in range(course_count):
+        asst_idx = int(np.random.rand(1)[0] * assistant_count)
+        while asst_idx in exclude_assistants:
+            asst_idx = int(np.random.rand(1)[0] * assistant_count)
+        if course in exclude_courses:
+            continue
+        result_matrix[asst_idx, course] = 1
+    
+    return swap(problem, result_matrix, iter_count, assistant_count, course_count, exclude_courses, exclude_assistants)

@@ -20,10 +20,10 @@ logging.config.dictConfig(logging_config)
 logger = logging.getLogger('araap')
 
 @click.group()
-@click.option('--debug/--no-debug', default=False, help='Set debug mode.')
-@click.version_option('0.8.2', prog_name='ARALAP')
-def cli(debug):
-    settings.DEBUG = debug
+@click.option('--verbosity-level', default='ERROR', help='Set the verbosity level.')
+@click.version_option('0.9.1', prog_name='ARALAP')
+def cli(verbosity_level):
+    logger.setLevel(logging.getLevelName(verbosity_level))
 
 
 @cli.command()
@@ -70,9 +70,9 @@ def schedule(programs_dir, courses, use_existing, output, verbose):
         if len(assigned_courses) == len(settings.COURSES):
             logger.warning("All courses have already been assigned.")
         else:
-            result_matrix = optimizers.greedy(aa_problem, result_matrix=result_matrix, exclude_courses=assigned_courses, exclude_assistants=exclude_assistants)
+            result_matrix = optimizers.greedy_wo_randomization(aa_problem, result_matrix=result_matrix, exclude_courses=assigned_courses, exclude_assistants=exclude_assistants)
     else:
-        result_matrix = optimizers.greedy(aa_problem)
+        result_matrix = optimizers.greedy_wo_randomization(aa_problem)
     
     save_program(output, result_matrix)
 
