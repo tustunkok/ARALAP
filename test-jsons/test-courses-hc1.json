@@ -1,0 +1,34 @@
+[
+    {
+        "id": "course101",
+        "day": "wed",
+        "periods": [
+            2,
+            3
+        ]
+    },
+    {
+        "id": "course102",
+        "day": "wed",
+        "periods": [
+            1,
+            2
+        ]
+    },
+    {
+        "id": "course103",
+        "day": "wed",
+        "periods": [
+            2,
+            3
+        ]
+    },
+    {
+        "id": "course104",
+        "day": "fri",
+        "periods": [
+            2,
+            3
+        ]
+    }
+]

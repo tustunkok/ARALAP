@@ -4,7 +4,7 @@ import logging
 import initializers
 import json
 
-logger = logging.getLogger('araap')
+logger = logging.getLogger('aralap')
 
 def get_course_index(course_name):
     course_names = np.array(sorted(list(set([course["id"].split("-")[0] for course in settings.COURSES]))))

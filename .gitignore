@@ -159,6 +159,8 @@ cython_debug/
 .ionide
 
 # JSON files
-*.json
+jsons/
+programs/
+assigned-programs.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python,visualstudiocode

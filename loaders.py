@@ -2,10 +2,10 @@ import glob
 import json
 import logging
 
-logger = logging.getLogger('araap')
+logger = logging.getLogger('aralap')
 
-def load_programs(programs_dir: str) -> list:
-    assistant_files = glob.glob(f"{programs_dir}/asst_*")
+def load_programs(programs_dir: str, test_case_pattern="") -> list:
+    assistant_files = glob.glob(f"{programs_dir}/asst_*{test_case_pattern}.json")
     assistant_list = list()
 
     for assistant_file in assistant_files:

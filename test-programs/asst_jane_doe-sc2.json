@@ -1,0 +1,13 @@
+{
+    "name": "Jane Doe",
+    "unavailabilities": [
+        {
+            "day": "fri",
+            "periods": [
+                2,
+                3
+            ]
+        }
+    ],
+    "requested_course_ids": []
+}

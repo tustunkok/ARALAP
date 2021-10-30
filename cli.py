@@ -1,4 +1,3 @@
-import os
 import json
 import click
 import settings
@@ -11,17 +10,18 @@ import logging
 import logging.config
 import optimizers
 from ui import ui_main
+import problems
 
 with open('logging.yaml', 'r') as logging_conf_fp:
     logging_config = yaml.load(logging_conf_fp, Loader=yaml.FullLoader)
 
 logging.config.dictConfig(logging_config)
 
-logger = logging.getLogger('araap')
+logger = logging.getLogger('aralap')
 
 @click.group()
 @click.option('--verbosity-level', default='ERROR', help='Set the verbosity level.')
-@click.version_option('0.9.1', prog_name='ARALAP')
+@click.version_option('1.0.0-rc1', prog_name='ARALAP')
 def cli(verbosity_level):
     logger.setLevel(logging.getLevelName(verbosity_level))
 
@@ -61,7 +61,18 @@ def schedule(programs_dir, courses, use_existing, output, verbose):
     settings.ASSISTANT_PROGRAMS = loaders.load_programs(programs_dir)
     settings.COURSES = loaders.load_courses(courses)
 
-    aa_problem = constraints.AssistantAssignmentProblem()
+
+    
+    aa_problem = problems.AssistantAssignmentProblem(constraints=(
+        ("Hard Constraint 1", 100, constraints.hard_constraint_1),
+        ("Hard Constraint 2", 100, constraints.hard_constraint_2),
+        ("Soft Constraint 1", 55, constraints.soft_constraint_1),
+        ("Soft Constraint 2", 10, constraints.soft_constraint_2),
+        ("Soft Constraint 3", 10, constraints.soft_constraint_3),
+        ("Soft Constraint 4", 20, constraints.soft_constraint_4),
+        ("Soft Constraint 5", 5, constraints.soft_constraint_5),
+        # ("Soft Constraint 6", 5, constraints.soft_constraint_6),
+    ))
 
     if use_existing:
         result_matrix, assigned_courses, exclude_assistants = initializers.create_result_matrix(use_existing)
@@ -70,9 +81,9 @@ def schedule(programs_dir, courses, use_existing, output, verbose):
         if len(assigned_courses) == len(settings.COURSES):
             logger.warning("All courses have already been assigned.")
         else:
-            result_matrix = optimizers.greedy_wo_randomization(aa_problem, result_matrix=result_matrix, exclude_courses=assigned_courses, exclude_assistants=exclude_assistants)
+            result_matrix = optimizers.greedy(aa_problem, result_matrix=result_matrix, exclude_courses=assigned_courses, exclude_assistants=exclude_assistants)
     else:
-        result_matrix = optimizers.greedy_wo_randomization(aa_problem)
+        result_matrix = optimizers.greedy(aa_problem)
     
     save_program(output, result_matrix)
 

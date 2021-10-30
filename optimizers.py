@@ -2,7 +2,7 @@ import numpy as np
 import logging
 import settings
 
-logger = logging.getLogger('araap')
+logger = logging.getLogger('aralap')
 
 
 def swap(problem, result_matrix, iter_count, assistant_count, course_count, exclude_courses, exclude_assistants):
@@ -24,7 +24,7 @@ def swap(problem, result_matrix, iter_count, assistant_count, course_count, excl
                     result_test_matrix[assistant1, course], result_test_matrix[assistant2, course] = \
                         result_test_matrix[assistant2, course], result_test_matrix[assistant1, course]
 
-                    temp_loss = problem.evaluate(result_test_matrix, verbose=False)
+                    temp_loss = problem.evaluate(result_test_matrix)
                     if temp_loss < min_loss_value:
                         min_loss_assistant1_idx = assistant1
                         min_loss_assistant2_idx = assistant2
@@ -76,11 +76,9 @@ def greedy(problem, iter_count=50, result_matrix=None, exclude_courses=[], exclu
     if result_matrix is None:
         logger.info("No default result matrix is provided. Creating empty one.")
         result_matrix = np.zeros((assistant_count, course_count), dtype=int)
-        # result_test_matrix = np.zeros((assistant_count, course_count), dtype=int)
     else:
         logger.info("Default result matrix is provided. Using it.")
         logger.info("Excluding courses %s", exclude_courses)
-        # result_test_matrix = np.copy(result_matrix)
     
     for course in range(course_count):
         asst_idx = int(np.random.rand(1)[0] * assistant_count)

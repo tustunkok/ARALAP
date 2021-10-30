@@ -1,0 +1,13 @@
+{
+    "name": "John Doe",
+    "unavailabilities": [
+        {
+            "day": "wed",
+            "periods": [
+                1,
+                2
+            ]
+        }
+    ],
+    "requested_course_ids": []
+}
