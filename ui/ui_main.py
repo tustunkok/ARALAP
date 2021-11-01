@@ -6,8 +6,8 @@ from PySide6 import QtCore, QtWidgets
 from PySide6.QtUiTools import QUiLoader
 from .models import ResearchAssistantModel, Days, ResearchAssistantProgramModel
 
-PROGRAMS_DIR = None
-COURSES_FILE = None
+PROGRAMS_DIR = './programs/'
+COURSES_FILE = './jsons/courses.json'
 MAIN_WINDOW = None
 EXISTING_PROGRAM = None
 
@@ -89,5 +89,7 @@ def main():
     MAIN_WINDOW.createNewProgramBtn.clicked.connect(create_new_program)
     MAIN_WINDOW.chooseExistingProgBtn.clicked.connect(choose_existing_program)
     MAIN_WINDOW.show()
+
+    load_assistant_data()
 
     sys.exit(app.exec())

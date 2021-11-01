@@ -8,9 +8,10 @@ import numpy as np
 import yaml
 import logging
 import logging.config
-import optimizers
 from ui import ui_main
 import problems
+import warnings
+warnings.filterwarnings("error")
 
 with open('logging.yaml', 'r') as logging_conf_fp:
     logging_config = yaml.load(logging_conf_fp, Loader=yaml.FullLoader)
@@ -21,7 +22,7 @@ logger = logging.getLogger('aralap')
 
 @click.group()
 @click.option('--verbosity-level', default='ERROR', help='Set the verbosity level.')
-@click.version_option('1.0.0-rc1', prog_name='ARALAP')
+@click.version_option('1.0.0-rc2', prog_name='ARALAP')
 def cli(verbosity_level):
     logger.setLevel(logging.getLevelName(verbosity_level))
 
@@ -56,21 +57,23 @@ def interop(programs_dir, courses, names, program_of):
 @click.option('--use-existing', '-e', type=click.File('r'), help='Use a previously generated course schedule to create a new one.')
 @click.option('--output', '-o', type=click.File('w'), default='assigned-programs.json', help='Save the newly created schedule to the JSON file with the name FILENAME. Defaults to assigned-programs.json.')
 @click.option('--verbose', is_flag=True, help='Give the output in human-readable format.')
-def schedule(programs_dir, courses, use_existing, output, verbose):
+@click.option('--optimizer', default='greedy', help='The optimizer to be used.')
+@click.option('--epochs', default=50, help='Number of epochs.')
+def schedule(programs_dir, courses, use_existing, output, verbose, optimizer, epochs):
     """Create a new course schedule."""
     settings.ASSISTANT_PROGRAMS = loaders.load_programs(programs_dir)
     settings.COURSES = loaders.load_courses(courses)
 
-
+    optimizer_fn = settings.OPTIMIZERS[optimizer]
     
     aa_problem = problems.AssistantAssignmentProblem(constraints=(
         ("Hard Constraint 1", 100, constraints.hard_constraint_1),
         ("Hard Constraint 2", 100, constraints.hard_constraint_2),
-        ("Soft Constraint 1", 55, constraints.soft_constraint_1),
-        ("Soft Constraint 2", 10, constraints.soft_constraint_2),
-        ("Soft Constraint 3", 10, constraints.soft_constraint_3),
+        ("Soft Constraint 1", 45, constraints.soft_constraint_1),
+        ("Soft Constraint 2", 30, constraints.soft_constraint_2),
+        ("Soft Constraint 3", 0, constraints.soft_constraint_3),
         ("Soft Constraint 4", 20, constraints.soft_constraint_4),
-        ("Soft Constraint 5", 5, constraints.soft_constraint_5),
+        ("Soft Constraint 5", 10, constraints.soft_constraint_5),
         # ("Soft Constraint 6", 5, constraints.soft_constraint_6),
     ))
 
@@ -81,9 +84,9 @@ def schedule(programs_dir, courses, use_existing, output, verbose):
         if len(assigned_courses) == len(settings.COURSES):
             logger.warning("All courses have already been assigned.")
         else:
-            result_matrix = optimizers.greedy(aa_problem, result_matrix=result_matrix, exclude_courses=assigned_courses, exclude_assistants=exclude_assistants)
+            result_matrix = optimizer_fn(aa_problem, iter_count=epochs, result_matrix=result_matrix, exclude_courses=assigned_courses, exclude_assistants=exclude_assistants)
     else:
-        result_matrix = optimizers.greedy(aa_problem)
+        result_matrix = optimizer_fn(aa_problem, iter_count=epochs)
     
     save_program(output, result_matrix)
 

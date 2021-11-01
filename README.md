@@ -8,6 +8,10 @@ After cloning the project create a courses json file along with multiple assista
 
 ## Usage
 
+There are two CLIs for different purposes. The `interop` interface is for other 
+programs and the `schedule` interface is for humans. Some required options are 
+shared between two interfaces.
+
 ```bash
 python main.py
 ```

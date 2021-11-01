@@ -88,7 +88,8 @@ def soft_constraint_5(X, *args):
         raw_assigned_courses = list()
         for assigned_course in assigned_courses:
             raw_assigned_courses.append(initializers.get_course_index(assigned_course["id"].split("-")[0]) + 1)
-        all_stds.append(np.std(raw_assigned_courses) / np.mean(raw_assigned_courses))
+        if len(raw_assigned_courses) > 0:
+            all_stds.append(np.std(raw_assigned_courses) / np.mean(raw_assigned_courses))
     return np.sum(all_stds) / len(settings.ASSISTANT_PROGRAMS)
 
 
